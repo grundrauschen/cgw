@@ -51,8 +51,20 @@ spec:
 
           _add_route() {
               echo "======= setup route ======="
-              echo "ip route add $IPSEC_REMOTENET via $TUNNEL_GATEWAY dev $TUNNEL_INTERFACE onlink"
-              ip route add $IPSEC_REMOTENET via $TUNNEL_GATEWAY dev $TUNNEL_INTERFACE onlink
+              ## add or change route to HA
+              set +e
+              EXIST=`ip route show $IPSEC_REMOTENET | wc -l`
+              if [ $EXIST -eq 0 ]
+              then
+                echo "ip route add $IPSEC_REMOTENET via $TUNNEL_GATEWAY dev $TUNNEL_INTERFACE onlink"
+                ip route add $IPSEC_REMOTENET via $TUNNEL_GATEWAY dev $TUNNEL_INTERFACE onlink
+              fi
+              if [ $EXIST -eq 1 ]
+              then
+                echo "ip route add $IPSEC_REMOTENET via $TUNNEL_GATEWAY dev $TUNNEL_INTERFACE onlink"
+                ip route change $IPSEC_REMOTENET via $TUNNEL_GATEWAY dev $TUNNEL_INTERFACE onlink
+              fi
+              set -e
           }
 
           _term() {
